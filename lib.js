@@ -6,13 +6,16 @@ async function signCertificate(privateKey, certificate) {
     const signer = crypto.createSign('SHA256');
     signer.update(certString);
     signer.end();
-    const signature = signer.sign(privateKey, 'base64');
+
+    // Ensure the private key is in PEM format before signing
+    const privateKeyPEM = `-----BEGIN PRIVATE KEY-----\n${privateKey}\n-----END PRIVATE KEY-----`;
+
+    const signature = signer.sign(privateKeyPEM, 'base64');
     return signature;
 }
 
 // Function to generate ElGamal keys for Diffie-Hellman key exchange
 async function generateEG() {
-    // ElGamal requires a large prime number, base, and private/public key generation
     const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {
         namedCurve: 'secp256k1', // Elliptic curve used for ElGamal-like Diffie-Hellman
     });

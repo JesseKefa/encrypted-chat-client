@@ -1,4 +1,3 @@
-
 const assert = require('chai').assert;
 const Messenger = require('../messenger.js');
 const lib = require('../lib'); // Ensure this is importing correctly
@@ -21,7 +20,7 @@ describe('Messenger functionality', function () {
     const messenger = new Messenger('govPublicKey', 'trustedPartyPublicKey');
     const certificate = await messenger.generateCertificate('alice');
     
-    // Sign the certificate using a private key
+    // Replace this with a valid private key (PEM format)
     const privateKey = 'your_private_key'; // Use a valid private key for signing
     const signature = await lib.signCertificate(privateKey, certificate);
     

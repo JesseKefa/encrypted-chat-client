@@ -1,15 +1,15 @@
 {
   "name": "cs255_proj2",
   "version": "1.0.0",
-  "description": "",
+  "description": "Encrypted chat client using Node.js, Mocha for testing, and Chai for assertions.",
   "main": "messenger.js",
   "scripts": {
     "test": "mocha",
     "lint": "standard | snazzy",
     "lint-fix": "standard --fix | snazzy"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Jesse Kefa", 
+  "license": "MIT", 
   "dependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",

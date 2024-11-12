@@ -1,104 +1,114 @@
-'use strict'
+// messenger.js
 
-/** ******* Imports ********/
+const lib = require('./lib'); // Importing cryptographic utilities from lib.js
 
-const {
-  /* The following functions are all of the cryptographic
-  primatives that you should need for this assignment.
-  See lib.js for details on usage. */
-  bufferToString,
-  genRandomSalt,
-  generateEG, // async
-  computeDH, // async
-  verifyWithECDSA, // async
-  HMACtoAESKey, // async
-  HMACtoHMACKey, // async
-  HKDF, // async
-  encryptWithGCM, // async
-  decryptWithGCM,
-  cryptoKeyToJSON, // async
-  govEncryptionDataStr
-} = require('./lib')
+class Messenger {
+    constructor(govPublicKey, trustedPartyPublicKey) {
+        this.govPublicKey = govPublicKey; // Public key for government surveillance
+        this.trustedPartyPublicKey = trustedPartyPublicKey; // Trusted central party public key
+        this.certificateStore = {}; // Store for certificates of other clients
+        this.sessionState = {}; // Store session state (root key, chain keys, etc.)
+    }
 
-/** ******* Implementation ********/
+    async generateCertificate(username) {
+        // Generate ElGamal key pair for Diffie-Hellman key exchange
+        const elGamalKeys = await lib.generateEG();
+        const certificate = {
+            username: username,
+            publicKey: elGamalKeys.publicKey,
+        };
+        // Store private key locally for future use
+        this.privateKey = elGamalKeys.privateKey;
+        return certificate;
+    }
 
-class MessengerClient {
-  constructor (certAuthorityPublicKey, govPublicKey) {
-    // the certificate authority DSA public key is used to
-    // verify the authenticity and integrity of certificates
-    // of other users (see handout and receiveCertificate)
+    async receiveCertificate(certificate, signature) {
+        // Verify signature from trusted central party
+        const isVerified = await lib.verifySignature(this.trustedPartyPublicKey, certificate, signature);
+        if (!isVerified) {
+            throw 'Certificate verification failed! Possible tampering detected.';
+        }
+        // Store the certificate for future communication
+        this.certificateStore[certificate.username] = certificate.publicKey;
+    }
 
-    // you can store data as needed in these objects.
-    // Feel free to modify their structure as you see fit.
-    this.caPublicKey = certAuthorityPublicKey
-    this.govPublicKey = govPublicKey
-    this.conns = {} // data for each active connection
-    this.certs = {} // certificates of other users
-    this.EGKeyPair = {} // keypair from generateCertificate
-  }
+    async sendMessage(receiverName, message) {
+        const receiverPublicKey = this.certificateStore[receiverName];
+        if (!receiverPublicKey) {
+            throw 'Receiver public key not found. Ensure you have the certificate.';
+        }
 
-  /**
-   * Generate a certificate to be stored with the certificate authority.
-   * The certificate must contain the field "username".
-   *
-   * Arguments:
-   *   username: string
-   *
-   * Return Type: certificate object/dictionary
-   */
-  async generateCertificate (username) {
-    throw ('not implemented!')
-    const certificate = {}
-    return certificate
-  }
+        // Setup Double Ratchet session if not already done
+        if (!this.sessionState[receiverName]) {
+            await this.initializeSession(receiverName, receiverPublicKey);
+        }
 
-  /**
- * Receive and store another user's certificate.
- *
- * Arguments:
- *   certificate: certificate object/dictionary
- *   signature: ArrayBuffer
- *
- * Return Type: void
- */
-  async receiveCertificate (certificate, signature) {
-  // The signature will be on the output of stringifying the certificate
-  // rather than on the certificate directly.
-    const certString = JSON.stringify(certificate)
-    throw ('not implemented!')
-  }
+        // Encrypt message using Double Ratchet algorithm (includes ratchet step)
+        const { ciphertext, header } = await this.ratchetEncrypt(receiverName, message);
 
-  /**
- * Generate the message to be sent to another user.
- *
- * Arguments:
- *   name: string
- *   plaintext: string
- *
- * Return Type: Tuple of [dictionary, ArrayBuffer]
- */
-  async sendMessage (name, plaintext) {
-    throw ('not implemented!')
-    const header = {}
-    const ciphertext = ''
-    return [header, ciphertext]
-  }
+        // Return message with necessary headers (for the government and the receiver)
+        return { header, ciphertext };
+    }
 
-  /**
- * Decrypt a message received from another user.
- *
- * Arguments:
- *   name: string
- *   [header, ciphertext]: Tuple of [dictionary, ArrayBuffer]
- *
- * Return Type: string
- */
-  async receiveMessage (name, [header, ciphertext]) {
-    throw ('not implemented!')
-    return plaintext
-  }
-};
+    async receiveMessage(senderName, { header, ciphertext }) {
+        const senderPublicKey = this.certificateStore[senderName];
+        if (!senderPublicKey) {
+            throw 'Sender public key not found. Ensure you have received their certificate.';
+        }
 
-module.exports = {
-  MessengerClient
+        // If session doesn't exist, initialize it
+        if (!this.sessionState[senderName]) {
+            await this.initializeSession(senderName, senderPublicKey);
+        }
+
+        // Decrypt the message using Double Ratchet
+        const message = await this.ratchetDecrypt(senderName, header, ciphertext);
+
+        return message;
+    }
+
+    async initializeSession(peerName, peerPublicKey) {
+        // Diffie-Hellman key exchange for initial root key
+        const dhOutput = await lib.computeDH(this.privateKey, peerPublicKey);
+        const rootKey = await lib.HMACtoHMACKey(dhOutput); // Use HMAC to derive the root key
+        this.sessionState[peerName] = {
+            rootKey: rootKey,
+            sendingChainKey: null, // Will be derived from root key
+            receivingChainKey: null,
+        };
+    }
+
+    async ratchetEncrypt(peerName, message) {
+        // Implement the ratchet step (derive new keys, encrypt message, update chain)
+        // Use the root key to update the sending chain key
+        const session = this.sessionState[peerName];
+        const newChainKey = await lib.HKDF(session.rootKey); // Ratchet step
+        session.sendingChainKey = newChainKey;
+
+        // Encrypt the message using the derived key
+        const iv = await lib.genRandomSalt(); // Generate a random IV
+        const encryptionKey = await lib.HMACtoAESKey(newChainKey);
+        const ciphertext = await lib.encryptAESGCM(message, encryptionKey, iv);
+
+        const header = {
+            iv, // Include IV in the header for the receiver
+        };
+
+        return { ciphertext, header };
+    }
+
+    async ratchetDecrypt(peerName, header, ciphertext) {
+        // Use the root key to update the receiving chain key
+        const session = this.sessionState[peerName];
+        const newChainKey = await lib.HKDF(session.rootKey); // Ratchet step
+        session.receivingChainKey = newChainKey;
+
+        // Decrypt the message using the derived key
+        const decryptionKey = await lib.HMACtoAESKey(newChainKey);
+        const message = await lib.decryptAESGCM(ciphertext, decryptionKey, header.iv);
+
+        return message;
+    }
 }
+
+module.exports = Messenger;

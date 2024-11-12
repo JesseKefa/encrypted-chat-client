@@ -1,5 +1,3 @@
-// messenger.js
-
 const lib = require('./lib'); // Importing cryptographic utilities from lib.js
 
 class Messenger {
@@ -10,6 +8,7 @@ class Messenger {
         this.sessionState = {}; // Store session state (root key, chain keys, etc.)
     }
 
+    // Generate certificate for a user
     async generateCertificate(username) {
         // Generate ElGamal key pair for Diffie-Hellman key exchange
         const elGamalKeys = await lib.generateEG();
@@ -22,6 +21,7 @@ class Messenger {
         return certificate;
     }
 
+    // Receive and verify a certificate from a trusted party
     async receiveCertificate(certificate, signature) {
         // Verify signature from trusted central party
         const isVerified = await lib.verifySignature(this.trustedPartyPublicKey, certificate, signature);
@@ -32,6 +32,7 @@ class Messenger {
         this.certificateStore[certificate.username] = certificate.publicKey;
     }
 
+    // Send a message to a valid receiver
     async sendMessage(receiverName, message) {
         const receiverPublicKey = this.certificateStore[receiverName];
         if (!receiverPublicKey) {
@@ -50,6 +51,7 @@ class Messenger {
         return { header, ciphertext };
     }
 
+    // Receive a message and decrypt it
     async receiveMessage(senderName, { header, ciphertext }) {
         const senderPublicKey = this.certificateStore[senderName];
         if (!senderPublicKey) {
@@ -67,6 +69,7 @@ class Messenger {
         return message;
     }
 
+    // Initialize a session for key exchange with a peer
     async initializeSession(peerName, peerPublicKey) {
         // Diffie-Hellman key exchange for initial root key
         const dhOutput = await lib.computeDH(this.privateKey, peerPublicKey);
@@ -78,6 +81,7 @@ class Messenger {
         };
     }
 
+    // Encrypt the message using the ratchet algorithm
     async ratchetEncrypt(peerName, message) {
         // Implement the ratchet step (derive new keys, encrypt message, update chain)
         // Use the root key to update the sending chain key
@@ -97,6 +101,7 @@ class Messenger {
         return { ciphertext, header };
     }
 
+    // Decrypt the message using the ratchet algorithm
     async ratchetDecrypt(peerName, header, ciphertext) {
         // Use the root key to update the receiving chain key
         const session = this.sessionState[peerName];

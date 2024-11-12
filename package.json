@@ -4,12 +4,13 @@
   "description": "Encrypted chat client using Node.js, Mocha for testing, and Chai for assertions.",
   "main": "messenger.js",
   "scripts": {
+    "start": "node messenger.js", 
     "test": "mocha",
     "lint": "standard | snazzy",
     "lint-fix": "standard --fix | snazzy"
   },
-  "author": "Jesse Kefa", 
-  "license": "MIT", 
+  "author": "Jesse Kefa",
+  "license": "MIT",
   "dependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",

@@ -3,8 +3,6 @@
 ## Overview
 This project implements an end-to-end encrypted chat system using the **Double Ratchet Algorithm**, with additional requirements for government surveillance. The system provides features like certificate generation, secure key exchange, and encrypted messaging, ensuring **Forward Secrecy** and **Break-in Recovery**.
 
----
-
 ## Features
 - End-to-end encryption using the Double Ratchet Algorithm.
 
@@ -18,27 +16,19 @@ This project implements an end-to-end encrypted chat system using the **Double R
 
 - Certificate-based identity verification.
 
-
 ## Prerequisites
 - **Node.js** (version 18 or above)
 - **NPM** (Node Package Manager)
 
-
 ## Installation
-
 1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd encrypted-chat-client
-
+   ```git clone <repository-url>
+    cd encrypted-chat-client
 2. Install dependencies:
-    ```
-    npm install
-
+    ``` npm install
 3. Run tests to verify functionality:
+    ``` npm test
 
-    ```
-    npm test
 
 ## How to Use
 #  CLI Mode

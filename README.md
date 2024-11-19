@@ -1,38 +1,115 @@
-# Encrypted Chat Client using Double Ratchet Algorithm
+# End-to-End Encrypted Messenger
 
-This project is an end-to-end encrypted chat client implementation using the Double Ratchet Algorithm, as used by Signal and WhatsApp.
+## Overview
+This project implements an end-to-end encrypted chat system using the **Double Ratchet Algorithm**, with additional requirements for government surveillance. The system provides features like certificate generation, secure key exchange, and encrypted messaging, ensuring **Forward Secrecy** and **Break-in Recovery**.
+
+---
 
 ## Features
-- Secure Diffie-Hellman key exchange using ElGamal.
-- End-to-end encryption using AES-GCM.
-- Forward Secrecy and Break-in Recovery as per Signal’s specification.
-- Government public key encryption for message headers.
+- End-to-end encryption using the Double Ratchet Algorithm.
 
-## Setup Instructions
-1. Clone this repository:
-git clone https://github.com/<username>/encrypted-chat-client.git
+- ElGamal key pairs for initial key exchange.
 
-csharp
-Copy code
+- AES-GCM for symmetric encryption of messages.
 
-2. Navigate into the project directory:
-cd encrypted-chat-client
+- Forward Secrecy to protect past messages if current keys are compromised.
 
-markdown
-Copy code
+- Government key encryption for session keys.
 
-3. Install dependencies:
-npm install
+- Certificate-based identity verification.
+
+
+## Prerequisites
+- **Node.js** (version 18 or above)
+- **NPM** (Node Package Manager)
+
+
+## Installation
+
+1. Clone the repository:
+   ```
+   git clone <repository-url>
+   cd encrypted-chat-client
+
+2. Install dependencies:
+    ```
+    npm install
+
+3. Run tests to verify functionality:
+
+    ```
+    npm test
+
+## How to Use
+#  CLI Mode
+
+- You can interact with the Messenger system using the CLI tool.
+
+Start the CLI:
+
+```
+node cli.js
+
+Available commands:
+```
+generate <username> : Generate a certificate for the user.
+receive <name> <key> <sig>: Receive and verify a certificate.
+send <name> <message>: Send an encrypted message.
+receive-message <name>: Receive and decrypt a message.
+exit: Exit the CLI.
+Example:
 
 bash
 Copy code
+> generate alice
+Generated Certificate: { username: 'alice', publicKey: '...' }
 
-4. Run the test suite:
-npm test
+> send bob "Hello, Bob!"
+Encrypted Message Sent: { header: { iv: '...', authTag: '...' }, ciphertext: '...' }
 
-markdown
+> receive-message alice
+Decrypted Message: Hello, Bob!
+Running Tests
+To validate the implementation, run:
+
+bash
 Copy code
+npm test
+This runs the test cases provided in test-messenger.js to ensure all functionalities work correctly.
 
-## Running the Application
-- The code can be run using Node.js to simulate encrypted messaging between clients.
-- The core cryptographic operations are handled by the `lib.js` library.
+Project Structure
+messenger.js: Core implementation of the Messenger class.
+lib.js: Cryptographic utilities (e.g., key generation, encryption, HKDF).
+test-messenger.js: Unit tests for verifying Messenger functionality.
+cli.js: Command-line interface for interacting with the Messenger system.
+Technology Stack
+Node.js: Server-side JavaScript runtime.
+Crypto: Native Node.js cryptographic library for encryption and key management.
+Chai: Assertion library for unit testing.
+Security Features
+Double Ratchet Algorithm:
+
+Securely updates encryption keys after every message.
+Ensures Forward Secrecy and Break-in Recovery.
+Government Surveillance:
+
+Session keys are encrypted with a government-issued public key.
+Certificate Verification:
+
+Trusted central authority verifies the authenticity of certificates.
+AES-GCM Encryption:
+
+Provides confidentiality and message integrity.
+Limitations
+Does not handle dropped or out-of-order messages (extra credit feature).
+Assumes certificates are exchanged securely via a trusted party.
+Future Enhancements
+Add support for handling out-of-order messages.
+Create a web-based UI for easier interaction.
+Extend functionality to simulate multiple clients in parallel.
+Author
+Your Name
+Contact: [your-email@example.com]
+University/Organization: Your University Name
+License
+This project is licensed under the MIT License. See the LICENSE file for details.

@@ -17,21 +17,25 @@ This project implements an end-to-end encrypted chat system using the **Double R
 - Certificate-based identity verification.
 
 ## Prerequisites
-- **Node.js** (version 18 or above)
-- **NPM** (Node Package Manager)
+**Node.js** (version 18 or above)
+**NPM** (Node Package Manager)
 
 ## Installation
 1. Clone the repository:
    ```
     git clone <repository-url>
     cd encrypted-chat-client
+    ```
+
 2. Install dependencies:
     ``` 
     npm install
+    ```
+
 3. Run tests to verify functionality:
     ``` 
     npm test
-
+    ```
 
 ## How to Use
 #  CLI Mode
@@ -44,27 +48,27 @@ node cli.js
 ```
 
 2. Available commands:
-- Generate a certificate for the user.
+Generate a certificate for the user.
 ```
 generate <username> 
 ``` 
 
-- Receive and verify a certificate.
+Receive and verify a certificate.
 ```
 receive <name> <key> <sig>
 ```
 
-- Send an encrypted message
+Send an encrypted message
 ```
 send <name> <message>: 
 ```
 
-- Receive and decrypt a message.
+Receive and decrypt a message.
 ```
 receive-message <name>
 ```
 
-- Exit the CLI.
+Exit the CLI.
 ```
 exit
 ```
@@ -84,7 +88,7 @@ Decrypted Message: Hello, Bob!
 ```
 
 ## Running Tests
-- To validate the implementation, run:
+To validate the implementation, run:
 
 ```
 npm test

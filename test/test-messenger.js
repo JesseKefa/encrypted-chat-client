@@ -3,62 +3,88 @@ const Messenger = require('../messenger.js');
 const lib = require('../lib'); // Ensure this is importing correctly
 
 describe('Messenger functionality', function () {
+    let trustedPartyKeys, govKeys;
 
-  it('should create a Messenger instance', function () {
-    const messenger = new Messenger('govPublicKey', 'trustedPartyPublicKey');
-    assert.instanceOf(messenger, Messenger, 'The instance is of type Messenger');
-  });
+    before(async function () {
+        // Generate trusted party and government key pairs for tests
+        trustedPartyKeys = await lib.generateEG();
+        govKeys = await lib.generateEG();
+    });
 
-  it('should generate a certificate for a user', async function () {
-    const messenger = new Messenger('govPublicKey', 'trustedPartyPublicKey');
-    const certificate = await messenger.generateCertificate('alice');
-    assert.property(certificate, 'username', 'Certificate should have username');
-    assert.property(certificate, 'publicKey', 'Certificate should have publicKey');
-  });
+    it('should create a Messenger instance', function () {
+        const messenger = new Messenger(govKeys.publicKey, trustedPartyKeys.publicKey);
+        assert.instanceOf(messenger, Messenger, 'The instance is of type Messenger');
+    });
 
-  it('should receive and verify a certificate', async function () {
-    const messenger = new Messenger('govPublicKey', 'trustedPartyPublicKey');
-    const certificate = await messenger.generateCertificate('alice');
-    
-    // Replace this with a valid private key (PEM format)
-    const privateKey = 'your_private_key'; // Use a valid private key for signing
-    const signature = await lib.signCertificate(privateKey, certificate);
-    
-    await messenger.receiveCertificate(certificate, signature);
-    assert.property(messenger.certificateStore, 'alice', 'The certificate store should contain alice\'s public key');
-  });
+    it('should generate a certificate for a user', async function () {
+        const messenger = new Messenger(govKeys.publicKey, trustedPartyKeys.publicKey);
+        const { certificate } = await messenger.generateCertificate('alice');
+        assert.property(certificate, 'username', 'Certificate should have a username property');
+        assert.property(certificate, 'publicKey', 'Certificate should have a publicKey property');
+    });
 
-  it('should send a message to a valid receiver', async function () {
-    const aliceMessenger = new Messenger('govPublicKey', 'trustedPartyPublicKey');
-    const bobMessenger = new Messenger('govPublicKey', 'trustedPartyPublicKey');
-    
-    const aliceCertificate = await aliceMessenger.generateCertificate('alice');
-    const bobCertificate = await bobMessenger.generateCertificate('bob');
-    
-    // Simulate certificate exchange
-    await aliceMessenger.receiveCertificate(bobCertificate, await lib.signCertificate('trustedPartyPrivateKey', bobCertificate));
-    await bobMessenger.receiveCertificate(aliceCertificate, await lib.signCertificate('trustedPartyPrivateKey', aliceCertificate));
+    it('should receive and verify a certificate', async function () {
+        const messenger = new Messenger(govKeys.publicKey, trustedPartyKeys.publicKey);
+        const { certificate, signature } = await messenger.generateCertificate('alice');
 
-    const message = 'Hello, Bob!';
-    const { header, ciphertext } = await aliceMessenger.sendMessage('bob', message);
-    assert.isObject(header, 'Message should include header');
-    assert.isString(ciphertext, 'Message should be encrypted');
-  });
+        // Simulate signing by the trusted central party
+        const trustedSignature = await lib.signCertificate(trustedPartyKeys.privateKey, certificate);
 
-  it('should receive a message correctly', async function () {
-    const aliceMessenger = new Messenger('govPublicKey', 'trustedPartyPublicKey');
-    const bobMessenger = new Messenger('govPublicKey', 'trustedPartyPublicKey');
-    
-    const aliceCertificate = await aliceMessenger.generateCertificate('alice');
-    const bobCertificate = await bobMessenger.generateCertificate('bob');
-    
-    await aliceMessenger.receiveCertificate(bobCertificate, await lib.signCertificate('trustedPartyPrivateKey', bobCertificate));
-    await bobMessenger.receiveCertificate(aliceCertificate, await lib.signCertificate('trustedPartyPrivateKey', aliceCertificate));
+        await messenger.receiveCertificate(certificate, trustedSignature);
+        assert.property(
+            messenger.certificateStore,
+            'alice',
+            'The certificate store should contain Alice\'s public key'
+        );
+        assert.strictEqual(
+            messenger.certificateStore['alice'],
+            certificate.publicKey,
+            'The stored public key should match Alice\'s public key'
+        );
+    });
 
-    const message = 'Hello, Bob!';
-    const { header, ciphertext } = await aliceMessenger.sendMessage('bob', message);
-    const receivedMessage = await bobMessenger.receiveMessage('alice', { header, ciphertext });
-    
-    assert.equal(receivedMessage, message, 'The received message should match the sent message');
-  });
+    it('should send a message to a valid receiver', async function () {
+        const aliceMessenger = new Messenger(govKeys.publicKey, trustedPartyKeys.publicKey);
+        const bobMessenger = new Messenger(govKeys.publicKey, trustedPartyKeys.publicKey);
+
+        const { certificate: aliceCertificate } = await aliceMessenger.generateCertificate('alice');
+        const { certificate: bobCertificate } = await bobMessenger.generateCertificate('bob');
+
+        // Simulate certificate exchange and verification
+        const aliceTrustedSignature = await lib.signCertificate(trustedPartyKeys.privateKey, aliceCertificate);
+        const bobTrustedSignature = await lib.signCertificate(trustedPartyKeys.privateKey, bobCertificate);
+
+        await aliceMessenger.receiveCertificate(bobCertificate, bobTrustedSignature);
+        await bobMessenger.receiveCertificate(aliceCertificate, aliceTrustedSignature);
+
+        // Send message from Alice to Bob
+        const message = 'Hello, Bob!';
+        const { header, ciphertext } = await aliceMessenger.sendMessage('bob', message);
+
+        assert.isObject(header, 'The message should include a header object');
+        assert.property(header, 'iv', 'The header should include the initialization vector (IV)');
+        assert.isString(ciphertext, 'The ciphertext should be a string');
+    });
+
+    it('should receive a message correctly', async function () {
+        const aliceMessenger = new Messenger(govKeys.publicKey, trustedPartyKeys.publicKey);
+        const bobMessenger = new Messenger(govKeys.publicKey, trustedPartyKeys.publicKey);
+
+        const { certificate: aliceCertificate } = await aliceMessenger.generateCertificate('alice');
+        const { certificate: bobCertificate } = await bobMessenger.generateCertificate('bob');
+
+        // Simulate certificate exchange and verification
+        const aliceTrustedSignature = await lib.signCertificate(trustedPartyKeys.privateKey, aliceCertificate);
+        const bobTrustedSignature = await lib.signCertificate(trustedPartyKeys.privateKey, bobCertificate);
+
+        await aliceMessenger.receiveCertificate(bobCertificate, bobTrustedSignature);
+        await bobMessenger.receiveCertificate(aliceCertificate, aliceTrustedSignature);
+
+        // Send and receive message
+        const message = 'Hello, Bob!';
+        const { header, ciphertext } = await aliceMessenger.sendMessage('bob', message);
+        const receivedMessage = await bobMessenger.receiveMessage('alice', { header, ciphertext });
+
+        assert.strictEqual(receivedMessage, message, 'The received message should match the sent message');
+    });
 });

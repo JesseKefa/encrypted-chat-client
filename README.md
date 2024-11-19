@@ -22,12 +22,15 @@ This project implements an end-to-end encrypted chat system using the **Double R
 
 ## Installation
 1. Clone the repository:
-   ```git clone <repository-url>
+   ```
+    git clone <repository-url>
     cd encrypted-chat-client
 2. Install dependencies:
-    ``` npm install
+    ``` 
+    npm install
 3. Run tests to verify functionality:
-    ``` npm test
+    ``` 
+    npm test
 
 
 ## How to Use
@@ -35,18 +38,23 @@ This project implements an end-to-end encrypted chat system using the **Double R
 
 - You can interact with the Messenger system using the CLI tool.
 
-Start the CLI:
-
+1. Start the CLI:
 ```
 node cli.js
 
-Available commands:
+
+2. Available commands:
 ```
 generate <username> : Generate a certificate for the user.
+
 receive <name> <key> <sig>: Receive and verify a certificate.
+
 send <name> <message>: Send an encrypted message.
+
 receive-message <name>: Receive and decrypt a message.
+
 exit: Exit the CLI.
+
 Example:
 
 bash

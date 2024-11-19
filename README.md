@@ -44,23 +44,35 @@ node cli.js
 ```
 
 2. Available commands:
+- Generate a certificate for the user.
 ```
 generate <username> 
+``` 
+
+- Receive and verify a certificate.
 ```
- Generate a certificate for the user.
+receive <name> <key> <sig>
+```
 
-receive <name> <key> <sig>: Receive and verify a certificate.
+- Send an encrypted message
+```
+send <name> <message>: 
+```
 
-send <name> <message>: Send an encrypted message.
+- Receive and decrypt a message.
+```
+receive-message <name>
+```
 
-receive-message <name>: Receive and decrypt a message.
+- Exit the CLI.
+```
+exit
+```
 
-exit: Exit the CLI.
 
 Example:
 
-bash
-Copy code
+```
 > generate alice
 Generated Certificate: { username: 'alice', publicKey: '...' }
 
@@ -69,28 +81,30 @@ Encrypted Message Sent: { header: { iv: '...', authTag: '...' }, ciphertext: '..
 
 > receive-message alice
 Decrypted Message: Hello, Bob!
-Running Tests
-To validate the implementation, run:
+```
 
-bash
-Copy code
+## Running Tests
+- To validate the implementation, run:
+
+```
 npm test
+```
+
 This runs the test cases provided in test-messenger.js to ensure all functionalities work correctly.
 
-Project Structure
-messenger.js: Core implementation of the Messenger class.
-lib.js: Cryptographic utilities (e.g., key generation, encryption, HKDF).
-test-messenger.js: Unit tests for verifying Messenger functionality.
-cli.js: Command-line interface for interacting with the Messenger system.
+## Project Structure
+- messenger.js: Core implementation of the Messenger class.
+- lib.js: Cryptographic utilities (e.g., key generation, encryption, HKDF).
+- test-messenger.js: Unit tests for verifying Messenger functionality.
+- cli.js: Command-line interface for interacting with the Messenger system.
 Technology Stack
-Node.js: Server-side JavaScript runtime.
+- Node.js: Server-side JavaScript runtime.
 Crypto: Native Node.js cryptographic library for encryption and key management.
-Chai: Assertion library for unit testing.
+- Chai: Assertion library for unit testing.
 
 
 ## Security Features
 1. Double Ratchet Algorithm: Securely updates encryption keys after every message.
-Ensures Forward Secrecy and Break-in Recovery.
 
 2. Government Surveillance: Session keys are encrypted with a government-issued public key.
 

@@ -1,4 +1,4 @@
-# End-to-End Encrypted Messenger
+# Encrypted Chat Client
 
 ## Overview
 This project implements an end-to-end encrypted chat system using the **Double Ratchet Algorithm**, with additional requirements for government surveillance. The system provides features like certificate generation, secure key exchange, and encrypted messaging, ensuring **Forward Secrecy** and **Break-in Recovery**.

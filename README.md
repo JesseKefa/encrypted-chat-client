@@ -41,11 +41,13 @@ This project implements an end-to-end encrypted chat system using the **Double R
 1. Start the CLI:
 ```
 node cli.js
-
+```
 
 2. Available commands:
 ```
-generate <username> : Generate a certificate for the user.
+generate <username> 
+```
+ Generate a certificate for the user.
 
 receive <name> <key> <sig>: Receive and verify a certificate.
 
@@ -84,30 +86,23 @@ Technology Stack
 Node.js: Server-side JavaScript runtime.
 Crypto: Native Node.js cryptographic library for encryption and key management.
 Chai: Assertion library for unit testing.
-Security Features
-Double Ratchet Algorithm:
 
-Securely updates encryption keys after every message.
+
+## Security Features
+1. Double Ratchet Algorithm: Securely updates encryption keys after every message.
 Ensures Forward Secrecy and Break-in Recovery.
-Government Surveillance:
 
-Session keys are encrypted with a government-issued public key.
-Certificate Verification:
+2. Government Surveillance: Session keys are encrypted with a government-issued public key.
 
-Trusted central authority verifies the authenticity of certificates.
-AES-GCM Encryption:
+3. Certificate Verification: Trusted central authority verifies the authenticity of certificates.
 
-Provides confidentiality and message integrity.
-Limitations
-Does not handle dropped or out-of-order messages (extra credit feature).
-Assumes certificates are exchanged securely via a trusted party.
-Future Enhancements
-Add support for handling out-of-order messages.
-Create a web-based UI for easier interaction.
-Extend functionality to simulate multiple clients in parallel.
-Author
-Your Name
-Contact: [your-email@example.com]
-University/Organization: Your University Name
-License
-This project is licensed under the MIT License. See the LICENSE file for details.
+4. AES-GCM Encryption: Provides confidentiality and message integrity.
+
+
+## Future Enhancements
+- Add support for handling out-of-order messages.
+- Create a web-based UI for easier interaction.
+- Extend functionality to simulate multiple clients in parallel.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
